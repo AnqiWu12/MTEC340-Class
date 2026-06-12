@@ -1,0 +1,29 @@
+using UnityEngine;
+
+public class BallBehavior : MonoBehaviour
+{
+    public float Speed = 7.0f;
+
+
+    private int _xDirection;
+    private int _yDirection;
+
+    void Start()
+    {
+        //Probability 
+        //Ternary Operatpr : condition ? pass : fails
+        _xDirection = Random. value < 0.5f ? -1 : 1;
+        _yDirection = Random.value < 0.5f ? -1 : 1;
+    }
+
+    
+    void Update()
+    {
+        transform.Translate(translation:new Vector3(
+            Speed * _xDirection, 
+            Speed * _yDirection,
+            0.0f
+            ) * Time.deltaTime);
+        
+    }
+}
