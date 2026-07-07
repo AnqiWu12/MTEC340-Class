@@ -27,4 +27,10 @@ public class BallBehavior : MonoBehaviour
         } while (Mathf.Approximately(num, 0.0f));
         return num;
     }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        // Ball fell out of the bottom of the play area
+        Destroy(gameObject);
+    }
 }

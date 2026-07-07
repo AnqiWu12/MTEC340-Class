@@ -2,39 +2,36 @@ using UnityEngine;
 
 public class PaddleBehavior : MonoBehaviour
 {
-    public float Speed = 5.0f;
+    private float _direction = 0.0f;
+    [SerializeField] private float _speed = 5.0f;
 
-    public KeyCode LeftDirection;
-    public KeyCode RightDirection;
+    [SerializeField] private KeyCode _leftDirection = KeyCode.LeftArrow;
+    [SerializeField] private KeyCode _rightDirection = KeyCode.RightArrow;
 
-    public float LeftBoundary = -5.61f;
-    public float RightBoundary = 5.59f;
+    private Rigidbody2D _rb;
 
-    void Start()
+    private void Start()
     {
+        _rb = GetComponent<Rigidbody2D>();
+    }
 
+    private void FixedUpdate()
+    {
+        _rb.linearVelocityX = _direction * _speed;
     }
 
     void Update()
     {
-        Vector3 movement = Vector3.zero;
+        _direction = 0.0f;
 
-        if (Input.GetKey(LeftDirection))
+        if (Input.GetKey(_leftDirection))
         {
-            movement.x -= Speed;
+            _direction -= 1.0f;
         }
 
-        if (Input.GetKey(RightDirection))
+        if (Input.GetKey(_rightDirection))
         {
-            movement.x += Speed;
+            _direction += 1.0f;
         }
-
-        movement *= Time.deltaTime;
-        transform.position += movement;
-
-        // Prevent paddle from leaving the play area
-        Vector3 clampedPosition = transform.position;
-        clampedPosition.x = Mathf.Clamp(clampedPosition.x, LeftBoundary, RightBoundary);
-        transform.position = clampedPosition;
     }
 }
