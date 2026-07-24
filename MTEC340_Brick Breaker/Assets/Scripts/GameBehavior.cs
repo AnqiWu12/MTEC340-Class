@@ -3,10 +3,17 @@ using TMPro;
 
 public class GameBehavior : MonoBehaviour
 {
-    // Both instance and access point
     public static GameBehavior Instance;
+    public enum GameState
+    {
+        Playing,
+        Paused
+    }
+
+    public GameState State { get; private set; } = GameState.Playing;
 
     [SerializeField] private GameObject _ballPrefab;
+    [SerializeField] private Transform _ballSpawnPoint;
     [SerializeField] private TMP_Text _scoreTextUI;
 
     private int _score;
@@ -23,9 +30,6 @@ public class GameBehavior : MonoBehaviour
 
     private void Awake()
     {
-        // Software Design Patterns
-        // Singleton Pattern: Enforces that there is only ever one class
-        // throughout the whole execution of the program
         if (Instance == null)
         {
             Instance = this;
@@ -41,6 +45,19 @@ public class GameBehavior : MonoBehaviour
         ResetGame();
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            TogglePause();
+        }
+    }
+
+    private void TogglePause()
+    {
+        State = State == GameState.Playing ? GameState.Paused : GameState.Playing;
+    }
+
     private void ResetGame()
     {
         Score = 0;
@@ -49,6 +66,11 @@ public class GameBehavior : MonoBehaviour
 
     private void SpawnBall()
     {
-        Instantiate(_ballPrefab);
+        Instantiate(_ballPrefab, _ballSpawnPoint.position, Quaternion.identity);
+    }
+
+    public void BallLost()
+    {
+        SpawnBall();
     }
 }

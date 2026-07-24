@@ -3,15 +3,13 @@ using UnityEngine;
 
 public class SnakeMovement : MonoBehaviour
 {
-    // [SerializeField] 让这个私有变量也能在 Unity 的 Inspector 里看到、改动
     // _moveInterval = 每隔多少秒走一格。数字越小，蛇越快
     [SerializeField] private float _moveInterval = 0.15f;
 
-    // 身体节的模板（预制体），等下从 Inspector 拖进来
-    // 每次要变长，就照着这个模板复制一节新身体出来
+    // 身体节的模板（预制体），从 Inspector 拖进来
     [SerializeField] private Transform _bodyPrefab;
 
-    // 苹果物体，从 Inspector 拖进来。蛇要靠它的位置判断有没有吃到
+    // 苹果物体，从 Inspector 拖进来。蛇靠它的位置判断有没有吃到
     [SerializeField] private Transform _apple;
 
     // _direction = 蛇当前朝哪个方向走。一开始设成"往右"
@@ -40,13 +38,13 @@ public class SnakeMovement : MonoBehaviour
 
     void Update()
     {
-        // 如果游戏已经结束，就什么都不做，蛇停下来
-        if (GameBehavior.Instance.State == GameBehavior.GameState.GameOver)
+        // 只有 Play 状态才处理输入（Pause 和 GameOver 都不动）
+        if (GameBehavior.Instance.State != Utilities.GameState.Play)
         {
             return;
         }
 
-        // 照常读键盘（这样才能捕捉到玩家按下的第一个方向键）
+        // 每一帧都读一下键盘，看玩家有没有要改方向
         HandleInput();
 
         // 玩家还没按过任何方向键，蛇就先静止不动，等你准备好
@@ -55,7 +53,11 @@ public class SnakeMovement : MonoBehaviour
             return;
         }
 
+        // 每帧把这一帧过去的时间加进计时器
+        // 用 Time.deltaTime，保证不管电脑快慢，蛇速都一样
         _moveTimer += Time.deltaTime;
+
+        // 当攒够的时间 >= 一个间隔，就走一格，然后把计时器清零重新攒
         if (_moveTimer >= _moveInterval)
         {
             _moveTimer = 0f;
@@ -72,7 +74,7 @@ public class SnakeMovement : MonoBehaviour
         // 算出蛇头"下一格"要去哪
         Vector2 nextPosition = (Vector2)_segments[0].position + _direction;
 
-        // 死亡判定①：撞到自己——下一格是否已经被某节身体占着
+        // 死亡判定：撞到自己——下一格是否已经被某节身体占着
         // （从第 1 节开始比，跳过第 0 节也就是头自己）
         for (int i = 1; i < _segments.Count; i++)
         {
@@ -104,12 +106,21 @@ public class SnakeMovement : MonoBehaviour
             GameBehavior.Instance.Score++;   // 加一分
         }
 
-        // 如果这一步要变长，就照着模板在"尾巴刚才的位置"复制一节新身体，加到列表末尾
+        // 如果这一步要变长，就照着模板在"尾巴刚才的位置"复制一节新身体
         if (_grow)
         {
             Transform newSegment = Instantiate(_bodyPrefab, tailPosition, Quaternion.identity);
             _segments.Add(newSegment);
             _grow = false;   // 长完了，把开关关掉，等下次再变长
+        }
+
+        // 如果吃到了苹果：这一步要变长，把苹果挪到新位置，并且加 1 分
+        if (ateApple)
+        {
+            _grow = true;
+            MoveApple();
+            GameBehavior.Instance.Score++;   // 加一分
+            GameBehavior.Instance.PlayEatSound();   // 新增这一行：播吃的音效
         }
     }
 
@@ -156,7 +167,6 @@ public class SnakeMovement : MonoBehaviour
         do
         {
             // Random.Range(-6, 7) 会随机给 -6 到 6 之间的整数（7 是取不到的上限）
-            // 我们的场地格子范围就是 -6 到 6
             int x = Random.Range(-6, 7);
             int y = Random.Range(-6, 7);
             newPos = new Vector2(x, y);
